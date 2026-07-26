@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zip Game - 10 Levels</title>
+  <title>Zip Game - Path Drawing Puzzle</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
     body {
@@ -20,98 +20,131 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 15px;
     }
 
     .card {
       background: #1e293b;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4);
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       text-align: center;
     }
 
     h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
+      font-size: 26px;
       color: #38bdf8;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 16px;
     }
 
     .stats {
       display: flex;
       justify-content: space-between;
-      margin: 15px 0;
-      padding: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px 16px;
       background: #0f172a;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 12px;
       font-weight: 600;
+      font-size: 15px;
+    }
+
+    .grid-container {
+      position: relative;
+      margin: 0 auto 20px auto;
+      user-select: none;
+      touch-action: none;
     }
 
     .grid {
       display: grid;
-      gap: 10px;
-      margin: 20px 0;
-      justify-content: center;
+      position: relative;
+      background: #0f172a;
+      padding: 6px;
+      border-radius: 14px;
+      gap: 6px;
     }
 
     .cell {
-      width: 60px;
-      height: 60px;
       background: #334155;
-      border-radius: 10px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      font-weight: bold;
+      font-weight: 800;
       cursor: pointer;
-      user-select: none;
-      transition: all 0.2s ease;
-    }
-
-    .cell:hover {
-      background: #475569;
+      color: #f8fafc;
+      position: relative;
+      transition: background 0.15s ease;
     }
 
     .cell.visited {
-      background: #38bdf8;
-      color: #0f172a;
-      transform: scale(0.95);
+      background: #0284c7;
     }
 
-    .cell.current {
-      background: #f59e0b;
-      color: #0f172a;
-      box-shadow: 0 0 12px #f59e0b;
+    .cell.start-cell {
+      background: #0369a1;
+      border: 2px solid #38bdf8;
+    }
+
+    .cell.dot {
+      color: #fef08a;
+      text-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
+    }
+
+    /* Wall Overlays */
+    .wall-v {
+      position: absolute;
+      width: 6px;
+      background: #f43f5e;
+      border-radius: 3px;
+      box-shadow: 0 0 6px #f43f5e;
+      z-index: 10;
+    }
+
+    .wall-h {
+      position: absolute;
+      height: 6px;
+      background: #f43f5e;
+      border-radius: 3px;
+      box-shadow: 0 0 6px #f43f5e;
+      z-index: 10;
     }
 
     .controls {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       justify-content: center;
-      margin-top: 15px;
+      margin-top: 10px;
     }
 
     button {
-      padding: 10px 18px;
+      padding: 10px 20px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.96);
     }
 
     .btn-reset {
-      background: #ef4444;
+      background: #e11d48;
       color: white;
-    }
-
-    .btn-reset:hover {
-      background: #dc2626;
     }
 
     .btn-share {
@@ -119,26 +152,17 @@
       color: white;
     }
 
-    .btn-share:hover {
-      background: #059669;
-    }
-
-    .instructions {
-      font-size: 13px;
-      color: #94a3b8;
-      margin-top: 15px;
-    }
-
     .toast {
       position: fixed;
-      bottom: 20px;
+      bottom: 24px;
       background: #38bdf8;
       color: #0f172a;
       padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: bold;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 14px;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.3s ease;
       pointer-events: none;
     }
 
@@ -150,156 +174,346 @@
 <body>
 
   <div class="card">
-    <h1>ZIP GAME</h1>
-    <p style="color:#94a3b8">Connect numbers 1 to N in sequence!</p>
+    <h1>ZIP</h1>
+    <p class="subtitle">Visit every cell in order (1 → 2 → 3...). Avoid walls!</p>
 
     <div class="stats">
-      <span>Level: <span id="level-display">1</span>/10</span>
-      <span>Time: <span id="timer-display">0.0</span>s</span>
+      <span>Level: <span id="lvl">1</span>/10</span>
+      <span>Time: <span id="time">0.0</span>s</span>
     </div>
 
-    <div id="grid" class="grid"></div>
+    <div class="grid-container" id="grid-container">
+      <div id="grid" class="grid"></div>
+    </div>
 
     <div class="controls">
-      <button class="btn-reset" onclick="resetLevel()">Reset Level</button>
-      <button class="btn-share" onclick="shareGame()">Share Link</button>
+      <button class="btn-reset" onclick="resetLevel()">Reset</button>
+      <button class="btn-share" onclick="shareApp()">Share</button>
     </div>
-
-    <p class="instructions">Click on tile 1, then click neighboring adjacent tiles in order (1 -> 2 -> 3...) to solve the grid.</p>
   </div>
 
   <div id="toast" class="toast">Link copied to clipboard!</div>
 
   <script>
-    // 10 Level configurations (grid sizes & targets)
-    const levels = [
-      { size: 2, target: 4 },
-      { size: 3, target: 5 },
-      { size: 3, target: 7 },
-      { size: 3, target: 9 },
-      { size: 4, target: 8 },
-      { size: 4, target: 10 },
-      { size: 4, target: 12 },
-      { size: 4, target: 16 },
-      { size: 5, target: 15 },
-      { size: 5, target: 20 }
+    // 10 Handcrafted Levels with Grid Dimensions, Numbered Dots, and Walls
+    const LEVELS = [
+      // Level 1: 3x3
+      {
+        rows: 3, cols: 3,
+        dots: { "0,0": 1, "2,2": 2 },
+        walls: [ { r1:0, c1:1, r2:1, c1:1 } ] // horizontal wall between (0,1) and (1,1)
+      },
+      // Level 2: 3x3
+      {
+        rows: 3, cols: 3,
+        dots: { "0,0": 1, "0,2": 2, "2,2": 3 },
+        walls: [ { r1:1, c1:0, r2:1, c2:1 } ]
+      },
+      // Level 3: 3x3 with tight wall
+      {
+        rows: 3, cols: 3,
+        dots: { "2,0": 1, "0,1": 2, "2,2": 3 },
+        walls: [ { r1:1, c1:1, r2:1, c2:2 } ]
+      },
+      // Level 4: 4x4
+      {
+        rows: 4, cols: 4,
+        dots: { "0,0": 1, "3,0": 2, "3,3": 3 },
+        walls: [ { r1:0, c1:1, r2:0, c2:2 }, { r1:2, c1:2, r2:3, c2:2 } ]
+      },
+      // Level 5: 4x4
+      {
+        rows: 4, cols: 4,
+        dots: { "0,0": 1, "1,3": 2, "3,2": 3, "0,3": 4 },
+        walls: [ { r1:1, c1:1, r2:2, c2:1 } ]
+      },
+      // Level 6: 4x4
+      {
+        rows: 4, cols: 4,
+        dots: { "0,0": 1, "2,1": 2, "1,3": 3, "3,3": 4 },
+        walls: [ { r1:0, c1:2, r2:1, c2:2 }, { r1:2, c1:0, r2:2, c2:1 } ]
+      },
+      // Level 7: 5x4
+      {
+        rows: 5, cols: 4,
+        dots: { "0,0": 1, "2,2": 2, "4,0": 3, "4,3": 4 },
+        walls: [ { r1:1, c1:1, r2:1, c2:2 }, { r1:3, c1:2, r2:3, c2:3 } ]
+      },
+      // Level 8: 5x5
+      {
+        rows: 5, cols: 5,
+        dots: { "0,0": 1, "2,2": 2, "0,4": 3, "4,4": 4, "4,0": 5 },
+        walls: [ { r1:1, c1:2, r2:2, c2:2 }, { r1:3, c1:1, r2:3, c2:2 } ]
+      },
+      // Level 9: 5x5
+      {
+        rows: 5, cols: 5,
+        dots: { "0,2": 1, "2,4": 2, "4,2": 3, "2,0": 4, "2,2": 5 },
+        walls: [ { r1:0, c1:0, r2:1, c2:0 }, { r1:3, c1:3, r2:4, c2:3 } ]
+      },
+      // Level 10: 5x5 Challenge
+      {
+        rows: 5, cols: 5,
+        dots: { "0,0": 1, "1,2": 2, "3,1": 3, "4,4": 4, "0,4": 5 },
+        walls: [ 
+          { r1:1, c1:0, r2:1, c2:1 }, 
+          { r1:2, c1:3, r2:3, c2:3 },
+          { r1:3, c1:1, r2:3, c2:2 }
+        ]
+      }
     ];
 
-    let currentLevel = 0;
-    let gridState = [];
-    let path = [];
+    let currentLvl = 0;
+    let path = []; // array of {r, c}
     let timer = null;
     let seconds = 0;
-    let timerRunning = false;
+    let timerActive = false;
+    let isMouseDown = false;
+
+    const cellSize = 60;
+    const gapSize = 6;
 
     function startTimer() {
-      if (timerRunning) return;
-      timerRunning = true;
+      if (timerActive) return;
+      timerActive = true;
       seconds = 0;
-      document.getElementById('timer-display').innerText = '0.0';
       timer = setInterval(() => {
         seconds += 0.1;
-        document.getElementById('timer-display').innerText = seconds.toFixed(1);
+        document.getElementById('time').innerText = seconds.toFixed(1);
       }, 100);
     }
 
     function stopTimer() {
       clearInterval(timer);
-      timerRunning = false;
+      timerActive = false;
     }
 
-    function initLevel() {
+    function getKey(r, c) { return `${r},${c}`; }
+
+    function loadLevel() {
       stopTimer();
-      document.getElementById('timer-display').innerText = '0.0';
-      document.getElementById('level-display').innerText = currentLevel + 1;
+      document.getElementById('time').innerText = '0.0';
+      document.getElementById('lvl').innerText = currentLvl + 1;
       
-      const level = levels[currentLevel];
-      const gridElement = document.getElementById('grid');
-      gridElement.style.gridTemplateColumns = `repeat(${level.size}, 60px)`;
-      gridElement.innerHTML = '';
+      const lvlData = LEVELS[currentLvl];
+      const gridEl = document.getElementById('grid');
+      const containerEl = document.getElementById('grid-container');
+
+      // Clear existing walls
+      document.querySelectorAll('.wall-v, .wall-h').forEach(el => el.remove());
+
+      gridEl.style.gridTemplateColumns = `repeat(${lvlData.cols}, ${cellSize}px)`;
+      gridEl.style.gridTemplateRows = `repeat(${lvlData.rows}, ${cellSize}px)`;
+      gridEl.innerHTML = '';
       path = [];
 
-      gridState = Array(level.size * level.size).fill(null);
-
-      for (let i = 0; i < level.size * level.size; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.dataset.index = i;
-        cell.addEventListener('click', () => handleCellClick(i));
-        gridElement.appendChild(cell);
+      // Find start dot (value 1)
+      let startR = 0, startC = 0;
+      for (let key in lvlData.dots) {
+        if (lvlData.dots[key] === 1) {
+          const [r, c] = key.split(',').map(Number);
+          startR = r; startC = c;
+        }
       }
+
+      // Generate Grid Cells
+      for (let r = 0; r < lvlData.rows; r++) {
+        for (let c = 0; c < lvlData.cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+
+          const key = getKey(r, c);
+          if (lvlData.dots[key]) {
+            cell.innerText = lvlData.dots[key];
+            cell.classList.add('dot');
+          }
+
+          if (r === startR && c === startC) {
+            cell.classList.add('start-cell');
+          }
+
+          // Mouse / Touch Event Listeners for continuous dragging
+          cell.addEventListener('pointerdown', (e) => onPointerDown(r, c, e));
+          cell.addEventListener('pointerenter', (e) => onPointerEnter(r, c, e));
+
+          gridEl.appendChild(cell);
+        }
+      }
+
+      // Render Walls
+      lvlData.walls.forEach(w => {
+        const wall = document.createElement('div');
+        if (w.r1 === w.r2) {
+          // Vertical Wall (separates columns)
+          wall.className = 'wall-v';
+          const colIndex = Math.min(w.c1, w.c2);
+          const leftOffset = 6 + (colIndex + 1) * cellSize + colIndex * gapSize + (gapSize / 2) - 3;
+          const topOffset = 6 + w.r1 * (cellSize + gapSize);
+          wall.style.left = `${leftOffset}px`;
+          wall.style.top = `${topOffset}px`;
+          wall.style.height = `${cellSize}px`;
+        } else {
+          // Horizontal Wall (separates rows)
+          wall.className = 'wall-h';
+          const rowIndex = Math.min(w.r1, w.r2);
+          const topOffset = 6 + (rowIndex + 1) * cellSize + rowIndex * gapSize + (gapSize / 2) - 3;
+          const leftOffset = 6 + w.c1 * (cellSize + gapSize);
+          wall.style.top = `${topOffset}px`;
+          wall.style.left = `${leftOffset}px`;
+          wall.style.width = `${cellSize}px`;
+        }
+        containerEl.appendChild(wall);
+      });
     }
 
-    function handleCellClick(index) {
-      const level = levels[currentLevel];
+    function onPointerDown(r, c, e) {
+      isMouseDown = true;
+      const lvlData = LEVELS[currentLvl];
 
+      // Must start at dot #1
       if (path.length === 0) {
-        // First click starts timer and path at 1
-        startTimer();
-        path.push(index);
-        updateGridUI();
-        return;
-      }
-
-      const lastIndex = path[path.length - 1];
-      if (isAdjacent(lastIndex, index, level.size) && !path.includes(index)) {
-        path.push(index);
-        updateGridUI();
-
-        // Check level win condition
-        if (path.length === level.target) {
-          stopTimer();
-          setTimeout(() => {
-            alert(`Level ${currentLevel + 1} cleared in ${seconds.toFixed(1)} seconds!`);
-            if (currentLevel < levels.length - 1) {
-              currentLevel++;
-              initLevel();
-            } else {
-              alert('🎉 Congratulations! You completed all 10 levels!');
-              currentLevel = 0;
-              initLevel();
-            }
-          }, 150);
+        if (lvlData.dots[getKey(r, c)] === 1) {
+          startTimer();
+          path.push({ r, c });
+          renderPath();
+        }
+      } else {
+        // Clicking backwards undoes path to that point
+        const index = path.findIndex(p => p.r === r && p.c === c);
+        if (index !== -1) {
+          path = path.slice(0, index + 1);
+          renderPath();
         }
       }
     }
 
-    function isAdjacent(idx1, idx2, size) {
-      const r1 = Math.floor(idx1 / size), c1 = idx1 % size;
-      const r2 = Math.floor(idx2 / size), c2 = idx2 % size;
-      return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+    function onPointerEnter(r, c, e) {
+      if (!isMouseDown || path.length === 0) return;
+
+      const last = path[path.length - 1];
+
+      // Ignore if hovering same cell
+      if (last.r === r && last.c === c) return;
+
+      // Allow backtracking by 1 cell
+      if (path.length > 1) {
+        const prev = path[path.length - 2];
+        if (prev.r === r && prev.c === c) {
+          path.pop();
+          renderPath();
+          return;
+        }
+      }
+
+      // Validate move
+      if (isValidMove(last, { r, c })) {
+        path.push({ r, c });
+        renderPath();
+        checkWinCondition();
+      }
     }
 
-    function updateGridUI() {
-      const cells = document.querySelectorAll('.cell');
-      cells.forEach((cell, idx) => {
-        cell.className = 'cell';
-        cell.innerText = '';
+    window.addEventListener('pointerup', () => { isMouseDown = false; });
 
-        const pathIndex = path.indexOf(idx);
-        if (pathIndex !== -1) {
-          cell.classList.add('visited');
-          cell.innerText = pathIndex + 1;
-          if (pathIndex === path.length - 1) {
-            cell.classList.add('current');
+    function isValidMove(from, to) {
+      // Must be orthogonal (no diagonals)
+      const dr = Math.abs(from.r - to.r);
+      const dc = Math.abs(from.c - to.c);
+      if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+        
+        // Cannot revisit an already visited cell
+        if (path.some(p => p.r === to.r && p.c === to.c)) return false;
+
+        // Check for wall blockage
+        const lvlData = LEVELS[currentLvl];
+        const isBlocked = lvlData.walls.some(w => {
+          return (
+            (w.r1 === from.r && w.c1 === from.c && w.r2 === to.r && w.c2 === to.c) ||
+            (w.r2 === from.r && w.c2 === from.c && w.r1 === to.r && w.c1 === to.c)
+          );
+        });
+
+        if (isBlocked) return false;
+
+        // Check waypoint sequence rule: if target cell has a dot, it must match the next sequence number
+        const targetDot = lvlData.dots[getKey(to.r, to.c)];
+        if (targetDot) {
+          let highestPassed = 1;
+          path.forEach(p => {
+            const val = lvlData.dots[getKey(p.r, p.c)];
+            if (val && val > highestPassed) highestPassed = val;
+          });
+
+          if (targetDot !== highestPassed + 1) {
+            return false; // Skipped a dot or hit a dot out of order
           }
         }
+
+        return true;
+      }
+      return false;
+    }
+
+    function renderPath() {
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => {
+        const r = parseInt(cell.dataset.r);
+        const c = parseInt(cell.dataset.c);
+        
+        const isVisited = path.some(p => p.r === r && p.c === c);
+        if (isVisited) {
+          cell.classList.add('visited');
+        } else {
+          cell.classList.remove('visited');
+        }
       });
+    }
+
+    function checkWinCondition() {
+      const lvlData = LEVELS[currentLvl];
+      const totalCells = lvlData.rows * lvlData.cols;
+
+      // Win requirement 1: Visit EVERY cell in grid
+      if (path.length !== totalCells) return;
+
+      // Win requirement 2: All dots visited
+      const totalDots = Object.keys(lvlData.dots).length;
+      let visitedDots = 0;
+      path.forEach(p => {
+        if (lvlData.dots[getKey(p.r, p.c)]) visitedDots++;
+      });
+
+      if (visitedDots === totalDots) {
+        stopTimer();
+        setTimeout(() => {
+          alert(`🎉 Level ${currentLvl + 1} Cleared in ${seconds.toFixed(1)}s!`);
+          if (currentLvl < LEVELS.length - 1) {
+            currentLvl++;
+            loadLevel();
+          } else {
+            alert('🏆 Amazing! You beat all 10 Zip levels!');
+            currentLvl = 0;
+            loadLevel();
+          }
+        }, 150);
+      }
     }
 
     function resetLevel() {
       stopTimer();
       path = [];
-      document.getElementById('timer-display').innerText = '0.0';
-      updateGridUI();
+      document.getElementById('time').innerText = '0.0';
+      renderPath();
     }
 
-    function shareGame() {
+    function shareApp() {
       const url = window.location.href;
       if (navigator.share) {
         navigator.share({
           title: 'Zip Game',
-          text: `Try out this Zip Game! I am on Level ${currentLevel + 1}!`,
+          text: `Can you beat Level ${currentLvl + 1} of this Zip puzzle game?`,
           url: url
         }).catch(() => {});
       } else {
@@ -310,8 +524,8 @@
       }
     }
 
-    // Initialize first level
-    initLevel();
+    // Load initial level
+    loadLevel();
   </script>
 </body>
 </html>
