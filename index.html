@@ -175,7 +175,7 @@
 
   <div class="card">
     <h1>ZIP</h1>
-    <p class="subtitle">Visit every cell in order (1 → 2 → 3...). Avoid walls!</p>
+    <p class="subtitle">Visit every cell in order (1 → 2 → 3...). End on the last number!</p>
 
     <div class="stats">
       <span>Level: <span id="lvl">1</span>/10</span>
@@ -195,76 +195,76 @@
   <div id="toast" class="toast">Link copied to clipboard!</div>
 
   <script>
-    // 10 Handcrafted Levels with Grid Dimensions, Numbered Dots, and Walls
+    // 10 Handcrafted, Solvable Zip Levels
+    // Rule: Highest number is always the final cell of the path!
     const LEVELS = [
-      // Level 1: 3x3
-      {
-        rows: 3, cols: 3,
-        dots: { "0,0": 1, "2,2": 2 },
-        walls: [ { r1:0, c1:1, r2:1, c1:1 } ] // horizontal wall between (0,1) and (1,1)
-      },
-      // Level 2: 3x3
+      // Level 1: 3x3 Warmup (No Walls)
       {
         rows: 3, cols: 3,
         dots: { "0,0": 1, "0,2": 2, "2,2": 3 },
-        walls: [ { r1:1, c1:0, r2:1, c2:1 } ]
+        walls: []
       },
-      // Level 3: 3x3 with tight wall
+      // Level 2: 3x3 Snake Path (No Walls)
       {
         rows: 3, cols: 3,
-        dots: { "2,0": 1, "0,1": 2, "2,2": 3 },
-        walls: [ { r1:1, c1:1, r2:1, c2:2 } ]
+        dots: { "0,0": 1, "1,1": 2, "2,0": 3, "2,2": 4 },
+        walls: []
       },
-      // Level 4: 4x4
+      // Level 3: 3x3 Wall Intro
+      {
+        rows: 3, cols: 3,
+        dots: { "0,0": 1, "2,0": 2, "0,2": 3 },
+        walls: [ { r1: 0, c1: 0, r2: 1, c2: 0 } ]
+      },
+      // Level 4: 4x4 Corner Sweep (No Walls)
       {
         rows: 4, cols: 4,
-        dots: { "0,0": 1, "3,0": 2, "3,3": 3 },
-        walls: [ { r1:0, c1:1, r2:0, c2:2 }, { r1:2, c1:2, r2:3, c2:2 } ]
+        dots: { "0,0": 1, "3,0": 2, "3,3": 3, "0,3": 4 },
+        walls: []
       },
-      // Level 5: 4x4
+      // Level 5: 4x4 Solvable Maze
       {
         rows: 4, cols: 4,
-        dots: { "0,0": 1, "1,3": 2, "3,2": 3, "0,3": 4 },
-        walls: [ { r1:1, c1:1, r2:2, c2:1 } ]
+        dots: { "0,0": 1, "0,2": 2, "3,2": 3, "3,0": 4 },
+        walls: [ { r1: 1, c1: 0, r2: 1, c2: 1 } ]
       },
-      // Level 6: 4x4
+      // Level 6: 4x4 Double Wall Navigation
       {
         rows: 4, cols: 4,
         dots: { "0,0": 1, "2,1": 2, "1,3": 3, "3,3": 4 },
-        walls: [ { r1:0, c1:2, r2:1, c2:2 }, { r1:2, c1:0, r2:2, c2:1 } ]
+        walls: [ { r1: 0, c1: 1, r2: 0, c2: 2 }, { r1: 2, c1: 2, r2: 3, c2: 2 } ]
       },
-      // Level 7: 5x4
+      // Level 7: 4x4 Strategic Barriers
+      {
+        rows: 4, cols: 4,
+        dots: { "0,0": 1, "1,2": 2, "2,0": 3, "0,3": 4 },
+        walls: [ { r1: 1, c1: 1, r2: 2, c1: 1 }, { r1: 2, c1: 2, r2: 2, c2: 3 } ]
+      },
+      // Level 8: 5x4 Grid Expansion
       {
         rows: 5, cols: 4,
-        dots: { "0,0": 1, "2,2": 2, "4,0": 3, "4,3": 4 },
-        walls: [ { r1:1, c1:1, r2:1, c2:2 }, { r1:3, c1:2, r2:3, c2:3 } ]
+        dots: { "0,0": 1, "2,3": 2, "4,0": 3, "4,3": 4 },
+        walls: [ { r1: 1, c1: 1, r2: 1, c2: 2 } ]
       },
-      // Level 8: 5x5
+      // Level 9: 5x5 Full Grid
       {
         rows: 5, cols: 5,
-        dots: { "0,0": 1, "2,2": 2, "0,4": 3, "4,4": 4, "4,0": 5 },
-        walls: [ { r1:1, c1:2, r2:2, c2:2 }, { r1:3, c1:1, r2:3, c2:2 } ]
+        dots: { "0,0": 1, "2,2": 2, "4,0": 3, "0,4": 4, "4,4": 5 },
+        walls: [ { r1: 1, c1: 2, r2: 2, c2: 2 } ]
       },
-      // Level 9: 5x5
+      // Level 10: 5x5 Grand Master
       {
         rows: 5, cols: 5,
-        dots: { "0,2": 1, "2,4": 2, "4,2": 3, "2,0": 4, "2,2": 5 },
-        walls: [ { r1:0, c1:0, r2:1, c2:0 }, { r1:3, c1:3, r2:4, c2:3 } ]
-      },
-      // Level 10: 5x5 Challenge
-      {
-        rows: 5, cols: 5,
-        dots: { "0,0": 1, "1,2": 2, "3,1": 3, "4,4": 4, "0,4": 5 },
+        dots: { "0,0": 1, "2,0": 2, "4,2": 3, "2,4": 4, "0,4": 5 },
         walls: [ 
-          { r1:1, c1:0, r2:1, c2:1 }, 
-          { r1:2, c1:3, r2:3, c2:3 },
-          { r1:3, c1:1, r2:3, c2:2 }
+          { r1: 1, c1: 0, r2: 1, c2: 1 }, 
+          { r1: 3, c1: 3, r2: 3, c2: 4 }
         ]
       }
     ];
 
     let currentLvl = 0;
-    let path = []; // array of {r, c}
+    let path = [];
     let timer = null;
     let seconds = 0;
     let timerActive = false;
@@ -307,7 +307,7 @@
       gridEl.innerHTML = '';
       path = [];
 
-      // Find start dot (value 1)
+      // Find start dot (1)
       let startR = 0, startC = 0;
       for (let key in lvlData.dots) {
         if (lvlData.dots[key] === 1) {
@@ -334,7 +334,7 @@
             cell.classList.add('start-cell');
           }
 
-          // Mouse / Touch Event Listeners for continuous dragging
+          // Pointer drag listeners
           cell.addEventListener('pointerdown', (e) => onPointerDown(r, c, e));
           cell.addEventListener('pointerenter', (e) => onPointerEnter(r, c, e));
 
@@ -346,7 +346,7 @@
       lvlData.walls.forEach(w => {
         const wall = document.createElement('div');
         if (w.r1 === w.r2) {
-          // Vertical Wall (separates columns)
+          // Vertical Wall
           wall.className = 'wall-v';
           const colIndex = Math.min(w.c1, w.c2);
           const leftOffset = 6 + (colIndex + 1) * cellSize + colIndex * gapSize + (gapSize / 2) - 3;
@@ -355,7 +355,7 @@
           wall.style.top = `${topOffset}px`;
           wall.style.height = `${cellSize}px`;
         } else {
-          // Horizontal Wall (separates rows)
+          // Horizontal Wall
           wall.className = 'wall-h';
           const rowIndex = Math.min(w.r1, w.r2);
           const topOffset = 6 + (rowIndex + 1) * cellSize + rowIndex * gapSize + (gapSize / 2) - 3;
@@ -372,7 +372,6 @@
       isMouseDown = true;
       const lvlData = LEVELS[currentLvl];
 
-      // Must start at dot #1
       if (path.length === 0) {
         if (lvlData.dots[getKey(r, c)] === 1) {
           startTimer();
@@ -380,7 +379,6 @@
           renderPath();
         }
       } else {
-        // Clicking backwards undoes path to that point
         const index = path.findIndex(p => p.r === r && p.c === c);
         if (index !== -1) {
           path = path.slice(0, index + 1);
@@ -393,11 +391,9 @@
       if (!isMouseDown || path.length === 0) return;
 
       const last = path[path.length - 1];
-
-      // Ignore if hovering same cell
       if (last.r === r && last.c === c) return;
 
-      // Allow backtracking by 1 cell
+      // Allow backtracking
       if (path.length > 1) {
         const prev = path[path.length - 2];
         if (prev.r === r && prev.c === c) {
@@ -407,7 +403,6 @@
         }
       }
 
-      // Validate move
       if (isValidMove(last, { r, c })) {
         path.push({ r, c });
         renderPath();
@@ -418,15 +413,16 @@
     window.addEventListener('pointerup', () => { isMouseDown = false; });
 
     function isValidMove(from, to) {
-      // Must be orthogonal (no diagonals)
       const dr = Math.abs(from.r - to.r);
       const dc = Math.abs(from.c - to.c);
+      
+      // Must be orthogonal move
       if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
         
-        // Cannot revisit an already visited cell
+        // No self-intersections
         if (path.some(p => p.r === to.r && p.c === to.c)) return false;
 
-        // Check for wall blockage
+        // Check for walls
         const lvlData = LEVELS[currentLvl];
         const isBlocked = lvlData.walls.some(w => {
           return (
@@ -437,7 +433,7 @@
 
         if (isBlocked) return false;
 
-        // Check waypoint sequence rule: if target cell has a dot, it must match the next sequence number
+        // Check waypoint sequence order
         const targetDot = lvlData.dots[getKey(to.r, to.c)];
         if (targetDot) {
           let highestPassed = 1;
@@ -447,7 +443,7 @@
           });
 
           if (targetDot !== highestPassed + 1) {
-            return false; // Skipped a dot or hit a dot out of order
+            return false;
           }
         }
 
@@ -475,17 +471,24 @@
       const lvlData = LEVELS[currentLvl];
       const totalCells = lvlData.rows * lvlData.cols;
 
-      // Win requirement 1: Visit EVERY cell in grid
+      // 1. Must cover all cells in grid
       if (path.length !== totalCells) return;
 
-      // Win requirement 2: All dots visited
-      const totalDots = Object.keys(lvlData.dots).length;
-      let visitedDots = 0;
-      path.forEach(p => {
-        if (lvlData.dots[getKey(p.r, p.c)]) visitedDots++;
-      });
+      // 2. Locate maximum number for current level
+      let maxDotNum = 0;
+      let maxDotPos = null;
+      for (let key in lvlData.dots) {
+        if (lvlData.dots[key] > maxDotNum) {
+          maxDotNum = lvlData.dots[key];
+          maxDotPos = key;
+        }
+      }
 
-      if (visitedDots === totalDots) {
+      // 3. Last cell touched MUST be the maximum dot number
+      const lastCell = path[path.length - 1];
+      const lastCellKey = getKey(lastCell.r, lastCell.c);
+
+      if (lastCellKey === maxDotPos) {
         stopTimer();
         setTimeout(() => {
           alert(`🎉 Level ${currentLvl + 1} Cleared in ${seconds.toFixed(1)}s!`);
@@ -493,7 +496,7 @@
             currentLvl++;
             loadLevel();
           } else {
-            alert('🏆 Amazing! You beat all 10 Zip levels!');
+            alert('🏆 Congratulations! You beat all 10 Zip levels!');
             currentLvl = 0;
             loadLevel();
           }
